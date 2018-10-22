@@ -18,7 +18,7 @@ else:
     from html import escape
 import Qtrac
 
-@Qtrac.has_methods("header", "paragraph", "footer")
+@Qtrac.has_methods("header", "paragraph", "footer")  # it's better than render1.py
 class Renderer(metaclass=abc.ABCMeta): pass
 
 MESSAGE = """This is a very short {} paragraph that demonstrates
