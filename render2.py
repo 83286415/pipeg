@@ -129,7 +129,7 @@ class HtmlWriter:
         self.file.write("</html>\n")
 
 
-class HtmlRenderer:
+class HtmlRenderer:  # adapter is not changed compared with render1.py
 
     def __init__(self, htmlWriter):
         self.htmlWriter = htmlWriter
