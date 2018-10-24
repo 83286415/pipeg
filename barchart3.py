@@ -31,7 +31,7 @@ def main():
 
 class BarRenderer(Qtrac.Requirer):
     required_methods = {"initialize", "draw_caption", "draw_bar",
-            "finalize"}
+            "finalize"}  # the same as @Qtrac.has_methods() in barchart1.py
 
 
 class BarCharter:

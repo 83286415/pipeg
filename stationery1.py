@@ -27,10 +27,10 @@ def main():
 
 class AbstractItem(metaclass=abc.ABCMeta):
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def composite(self):
         pass
-
 
     def __iter__(self):
         return iter([])
@@ -42,37 +42,32 @@ class SimpleItem(AbstractItem):
         self.name = name
         self.price = price
 
-
     @property
     def composite(self):
         return False
 
-
     def print(self, indent="", file=sys.stdout):
         print("{}${:.2f} {}".format(indent, self.price, self.name),
-                file=file)
+                file=file)  # the second {:.2f} means double precision for self.price
 
 
 class AbstractCompositeItem(AbstractItem):
 
-    def __init__(self, *items):
+    def __init__(self, *items):  # * means packet items(more than one item) into a list
         self.children = []
         if items:
             self.add(*items)
 
-
-    def add(self, first, *items):
+    def add(self, first, *items):  # handle multi args input
         self.children.append(first)
         if items:
             self.children.extend(items)
 
-
     def remove(self, item):
         self.children.remove(item)
 
-
     def __iter__(self):
-        return iter(self.children)
+        return iter(self.children)  # iter() returns a iterator which can be used in for _ in iterator.
 
 
 class CompositeItem(AbstractCompositeItem):
@@ -81,22 +76,19 @@ class CompositeItem(AbstractCompositeItem):
         super().__init__(*items)
         self.name = name
 
-
     @property
     def composite(self):
         return True
 
-
     @property
     def price(self):
-        return sum(item.price for item in self)
-
+        return sum(item.price for item in self)  # self == all items
 
     def print(self, indent="", file=sys.stdout):
         print("{}${:.2f} {}".format(indent, self.price, self.name),
                 file=file)
         for child in self:
-            child.print(indent + "      ")
+            child.print(indent + "      ")  # recursion printing
 
 
 if __name__ == "__main__":

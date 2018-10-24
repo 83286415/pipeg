@@ -13,7 +13,7 @@ import abc
 import os
 import re
 import tempfile
-import tkinter as tk
+import tkinter as tk  # tk instead of cyImage or Image lib
 import Qtrac
 
 
@@ -81,7 +81,7 @@ class ImageBarRenderer:
 
 
     def initialize(self, bars, maximum):
-        assert bars > 0 and maximum > 0
+        assert bars > 0 and maximum > 0  # if false, raise assert error
         if tk._default_root is None:
             self.gui = tk.Tk()
             self.inGui = False

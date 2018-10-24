@@ -29,6 +29,7 @@ def main():
     imageBarCharter.render("Forecast 6/8", pairs)
 
 
+# candy makes sure four methods above in class BarRenderer
 @Qtrac.has_methods("initialize", "draw_caption", "draw_bar", "finalize")
 class BarRenderer(metaclass=abc.ABCMeta): pass
 
@@ -89,24 +90,28 @@ class ImageBarRenderer:
 
     def initialize(self, bars, maximum):
         assert bars > 0 and maximum > 0
-        self.index = 0
+        self.index = 0  # the number of bar to be printed
         color = Image.color_for_name("white")
         self.image = Image.Image(bars * (self.barWidth + self.barGap),
                 maximum * self.stepHeight, background=color)
+        # usage: Image.Image(width, height, background color)
 
 
     def draw_caption(self, caption):
         self.filename = os.path.join(tempfile.gettempdir(),
                 re.sub(r"\W+", "_", caption) + ".xpm")
+        # re.sub: replace \ with _ in the string caption
+        # \W: none-char, none-num symbol;   +: more than one
+        # filename: wrote C:\Users\zhang.d\AppData\Local\Temp\Forecast_6_8.xpm
 
 
     def draw_bar(self, name, value):
         color = ImageBarRenderer.COLORS[self.index %
                 len(ImageBarRenderer.COLORS)]
         width, height = self.image.size
-        x0 = self.index * (self.barWidth + self.barGap)
-        x1 = x0 + self.barWidth
-        y0 = height - (value * self.stepHeight)
+        x0 = self.index * (self.barWidth + self.barGap)  # the x of bar's left side
+        x1 = x0 + self.barWidth  # the x of bar's right side
+        y0 = height - (value * self.stepHeight)  # refer to the definition of rectangle below
         y1 = height - 1
         self.image.rectangle(x0, y0, x1, y1, fill=color)
         self.index += 1
@@ -119,3 +124,4 @@ class ImageBarRenderer:
 
 if __name__ == "__main__":
     main()
+
