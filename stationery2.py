@@ -16,7 +16,7 @@ import sys
 def main():
     pencil = Item.create("Pencil", 0.40)
     ruler = Item.create("Ruler", 1.60)
-    eraser = make_item("Eraser", 0.20)
+    eraser = make_item("Eraser", 0.20)  # define def make_item to simplify when Item is called outside of this py file
     pencilSet = Item.compose("Pencil Set", pencil, ruler, eraser)
     box = Item.create("Box", 1.00)
     boxedPencilSet = make_composite("Boxed Pencil Set", box, pencilSet)
@@ -39,48 +39,47 @@ class Item:
     def __init__(self, name, *items, price=0.00):
         self.name = name
         self.price = price
-        self.children = []
-        if items:
+        self.children = []  # hold items objects
+        if items:  # items are sub-object of Item
             self.add(*items)
-
 
     @classmethod
     def create(Class, name, price):
         return Class(name, price=price)
 
-
     @classmethod
     def compose(Class, name, *items):
         return Class(name, *items)
 
-    
     @property
     def composite(self):
         return bool(self.children)
 
-
     def add(self, first, *items):
+        # self.children.extend(itertools.chain((first,), items))
+        # items is a tuple, so first should be in a tuple too.
+        # Only one element tuple need a "," to differ from (). Refer to book P36 my note.
         self.children.extend(itertools.chain((first,), items))
-
 
     def remove(self, item):
         self.children.remove(item)
 
-
     def __iter__(self):
         return iter(self.children)
 
-
     @property
     def price(self):
-        return (sum(item.price for item in self) if self.children else
-                self.__price)
+        # return (sum(item.price for item in self) if self.children else
+        #         self.__price)
+        if self.children:
+            children_sum = sum(item.price for item in self)
+            return self.__price + children_sum  # update to add self.price to sum
+        else:
+            return self.__price
 
-
-    @price.setter
+    @price.setter  # make property price writable
     def price(self, price):
         self.__price = price
-
 
     def print(self, indent="", file=sys.stdout):
         print("{}${:.2f} {}".format(indent, self.price, self.name),
