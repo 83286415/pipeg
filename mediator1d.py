@@ -72,6 +72,7 @@ class Mediator:
 
 def mediated(Class):
     setattr(Class, "mediator", None)
+
     def on_change(self):
         if self.mediator is not None:
             self.mediator.on_change(self)

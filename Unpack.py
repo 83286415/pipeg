@@ -21,50 +21,42 @@ import zipfile
 class Archive:
 
     def __init__(self, filename):
-        self._names = None
-        self._unpack = None
-        self._file = None
-        self.filename = filename
-
+        self._names = None  # a callable returns a name list [] of files unpacked from the zip file
+        self._unpack = None  # a callable could unpack files to the current folder
+        self._file = None  # the zip file object
+        self.filename = filename  # the name of the zip file
 
     @property
     def filename(self):
         return self.__filename
 
-
     @filename.setter
-    def filename(self, name):
+    def filename(self, name):  # the property filename could be changed after file closed
         self.close()
         self.__filename = name
-
 
     def close(self):
         if self._file is not None:
             self._file.close()
         self._names = self._unpack = self._file = None
 
-
     def names(self):
         if self._file is None:
-            self._prepare()
-        return self._names()
-
+            self._prepare()  # to open the zip file
+        return self._names()  # a callable
 
     def unpack(self):
         if self._file is None:
-            self._prepare()
-        self._unpack()
-
+            self._prepare()  # must make _names and _unpack callable in _prepare()
+        self._unpack()  # a callable
 
     def _prepare(self):
-        if self.filename.endswith((".tar.gz", ".tar.bz2", ".tar.xz",
-                ".zip")):
+        if self.filename.endswith((".tar.gz", ".tar.bz2", ".tar.xz", ".zip")):
             self._prepare_tarball_or_zip()
         elif self.filename.endswith(".gz"):
             self._prepare_gzip()
         else:
             raise ValueError("unreadable: {}".format(self.filename))
-
 
     def _prepare_tarball_or_zip(self):
         def safe_extractall():
@@ -76,25 +68,25 @@ class Archive:
                 raise ValueError("unsafe to unpack: {}".format(unsafe))
             self._file.extractall()
         if self.filename.endswith(".zip"):
-            self._file = zipfile.ZipFile(self.filename)
+            self._file = zipfile.ZipFile(self.filename)  # 实例化
             self._names = self._file.namelist
+            # 将实例的方法namelist绑定给self._names,直接self._names()即可调用此实例的此方法
             self._unpack = safe_extractall
-        else: # Ends with .tar.gz, .tar.bz2, or .tar.xz
+        else:  # Ends with .tar.gz, .tar.bz2, or .tar.xz
             suffix = os.path.splitext(self.filename)[1]
             self._file = tarfile.open(self.filename, "r:" + suffix[1:])
             self._names = self._file.getnames
             self._unpack = safe_extractall
 
-
     def _prepare_gzip(self):
         self._file = gzip.open(self.filename)
         filename = self.filename[:-3]
         self._names = lambda: [filename]
+
         def extractall():
             with open(filename, "wb") as file:
                 file.write(self._file.read())
         self._unpack = extractall
-
 
     def is_safe(self, filename):
         return not (filename.startswith(("/", "\\")) or

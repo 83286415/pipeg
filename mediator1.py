@@ -75,7 +75,6 @@ class Mediated:
     def __init__(self):
         self.mediator = None
 
-
     def on_change(self):
         if self.mediator is not None:
             self.mediator.on_change(self)
