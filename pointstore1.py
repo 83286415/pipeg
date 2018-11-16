@@ -34,7 +34,7 @@ def main():
 
 class Point:
 
-    __slots__ = ("x", "y", "z", "color")
+    __slots__ = ("x", "y", "z", "color")  # save memory but cost more running time
 
     def __init__(self, x=0, y=0, z=0, color=None):
         self.x = x

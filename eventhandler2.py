@@ -10,15 +10,15 @@
 # General Public License for more details.
 
 import sys
-import Event
+import Event  # Event randomly generated
 from Qtrac import coroutine
 
 
 def main():
     print("Handler Chain #1")
-    pipeline = key_handler(mouse_handler(timer_handler()))
+    pipeline = key_handler(mouse_handler(timer_handler()))  # no meta, no order, that's ok
     while True:
-        event = Event.next()
+        event = Event.next()  # pre-activate coroutine
         if event.kind == Event.TERMINATE:
             break
         pipeline.send(event)

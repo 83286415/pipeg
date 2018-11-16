@@ -18,11 +18,11 @@ except ImportError:
 
 
 YELLOW, CYAN, BLUE, RED, BLACK = (Image.color_for_name(color)
-    for color in ("yellow", "cyan", "blue", "red", "black"))
+    for color in ("yellow", "cyan", "blue", "red", "black"))  # define color global constant
 
 
 def main():
-    filename = os.path.join(tempfile.gettempdir(), "image.xpm")
+    filename = os.path.join(tempfile.gettempdir(), "image.xpm")  # C:\Users\zhang.d\AppData\Local\Temp\image.xpm
     image = Image.Image(300, 60)
     draw_and_save_image(image, filename)
 
@@ -31,7 +31,7 @@ def main():
     draw_and_save_image(image, filename)
 
 
-def draw_and_save_image(image, filename):
+def draw_and_save_image(image, filename):  # the regular way to create and save a image picture
     image.rectangle(0, 0, 299, 59, fill=YELLOW)
     image.ellipse(0, 0, 299, 59, fill=CYAN)
     image.ellipse(60, 20, 120, 40, BLUE, RED)
@@ -70,7 +70,7 @@ class ImageProxy:
         image.save(filename)
         return image
 
-
+    # functions below are not really to draw the image but save commands into a list and return it
     def set_pixel(self, x, y, color):
         self.commands.append((self.Image.set_pixel, x, y, color))
 
