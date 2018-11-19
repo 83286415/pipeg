@@ -10,6 +10,8 @@
 # General Public License for more details.
 
 import Command
+import os
+import tempfile
 
 
 def main():
@@ -41,6 +43,20 @@ def main():
     print('<table border="0"><tr><td>{}</td></tr></table>'.format(
         "</td><td>".join(html)))
 
+    # save the gird.html file to temp folder
+    grid_html_path = os.path.join(tempfile.gettempdir(), "grid.html")
+    file = None if isinstance(grid_html_path, str) else grid_html_path
+    try:
+        if file is None:
+            file = open(grid_html_path, "w", encoding="utf-8")
+        # for row in self.diagram:
+            # print("".join(row), file=file)
+        file.write(('<table border="0"><tr><td>{}</td></tr></table>'.format("</td><td>".join(html))))
+    finally:
+        if isinstance(grid_html_path, str) and file is not None:
+            file.close()
+            print('write:', grid_html_path)
+
 
 class Grid:
 
@@ -48,22 +64,18 @@ class Grid:
         self.__cells = [["white" for _ in range(height)]
                         for _ in range(width)]
 
-
     def cell(self, x, y, color=None):
         if color is None:
             return self.__cells[x][y]
         self.__cells[x][y] = color
 
-
     @property
     def rows(self):
         return len(self.__cells[0])
 
-
     @property
     def columns(self):
         return len(self.__cells)
-
 
     def as_html(self, description=None):
         table = ['<table border="1" style="font-family: fixed">']
@@ -89,11 +101,11 @@ class UndoableGrid(Grid):
     def create_cell_command(self, x, y, color):
         def undo():
             self.cell(x, y, undo.color)
+
         def do():
-            undo.color = self.cell(x, y) # Subtle!
+            undo.color = self.cell(x, y)  # Subtle!
             self.cell(x, y, color)
         return Command.Command(do, undo, "Cell")
-
 
     def create_rectangle_macro(self, x0, y0, x1, y1, color):
         macro = Command.Macro("Rectangle")
