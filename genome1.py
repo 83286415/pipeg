@@ -15,19 +15,21 @@ import sys
 TRANSFORM, SUMMARIZE = ("TRANSFORM", "SUMMARIZE")
 
 Code = collections.namedtuple("Code", "name code kind")
+# a data structure Code(name, code, kind), like tuple, named "Code" which has 3 elements: name, code, kind
 
 
 def main():
     genome = 3 * GENOME
     for code in CODE:
         context = dict(genome=genome, target="G[AC]{2}TT", replace="TCGA")
-        execute(code, context)
+        execute(code, context)  # dict is really good as the context carrier
 
 
 def execute(code, context):
     try:
-        exec(code.code, globals(), context)
-        result = context.get("result")
+        exec(code.code, globals(), context)  # exec put the results and errors into context after running
+        # print(context.items())
+        result = context.get("result")  # if no result in dict context, returns None
         error = context.get("error")
         handle_result(code, result, error)
     except Exception as err:
@@ -75,7 +77,7 @@ if not count:
 """
 result = 0
 for i in range(len(genome)):
-    if genome[i] = "A":
+    if genome[i] = "A":  # should use ==, not =
         result += 1
 """, SUMMARIZE)
 ,

@@ -31,10 +31,14 @@ def main():
 
 if sys.version_info[:2] > (3, 1):
     def execute(code, context):
-        module, offset = create_module(code.code, context)
+        module, offset = create_module(code.code, context)  # offset makes sure the line # of the error code
+
+        # open a subprocess with parameters below
         with subprocess.Popen([sys.executable, "-"], stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
-            communicate(process, code, module, offset)
+                              # sys.executable: C:/Python27/python.exe
+                              # - : parameters come from stdin
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:  # PIPE: a cash for in and out file
+            communicate(process, code, module, offset)  # send cmd(code) to this subprocess opened
 else:
     def execute(code, context):
         module, offset = create_module(code.code, context)
@@ -47,17 +51,19 @@ else:
 def create_module(code, context):
     lines = ["import json", "result = error = None"]
     for key, value in context.items():
-        lines.append("{} = {!r}".format(key, value))
-    offset = len(lines) + 1
+        lines.append("{} = {!r}".format(key, value))  # {!r}: == repr(value), the value represented in interpreter way
+    offset = len(lines) + 1  # offset: the number of lines we added in front of users' code
     outputLine = "\nprint(json.dumps((result, error)))"
     return "\n".join(lines) + "\n" + code + outputLine, offset
 
 
 def communicate(process, code, module, offset):
     stdout, stderr = process.communicate(module.encode(UTF8))
+    # communicate: send code.code to stdin for subprocess, returns stdout and stderr
+
     if stderr:
         stderr = stderr.decode(UTF8).lstrip().replace(", in <module>", ":")
-        stderr = re.sub(", line (\d+)",
+        stderr = re.sub(", line (\d+)",  # replace ", line #" with the #-offset in stderr
                 lambda match: str(int(match.group(1)) - offset), stderr)
         print(re.sub(r'File."[^"]+?"', "'{}' has an error on line "
                 .format(code.name), stderr))

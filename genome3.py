@@ -50,6 +50,8 @@ def create_module(code, context):
         lines.append("{} = {!r}".format(key, value))
     offset = len(lines) + 1
     outputLine = "\nsys.stdout.buffer.write(pickle.dumps((result, error)))"
+    # pickle can dump and load python structure and object
+
     return "\n".join(lines) + "\n" + code + outputLine, offset
 
 
