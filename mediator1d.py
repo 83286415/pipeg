@@ -71,17 +71,17 @@ class Mediator:
 
 
 def mediated(Class):
-    setattr(Class, "mediator", None)
+    setattr(Class, "mediator", None)  # set the input class's property mediator = None
 
     def on_change(self):
         if self.mediator is not None:
             self.mediator.on_change(self)
-    setattr(Class, "on_change", on_change)
+    setattr(Class, "on_change", on_change)  # set the input class's property function "on_change" on_change
     return Class
 
 
 @mediated
-class Button:
+class Button:  # Button is not changed below the candy
 
     def __init__(self, text=""):
         super().__init__()
