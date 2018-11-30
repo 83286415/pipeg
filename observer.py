@@ -18,11 +18,12 @@ import time
 def main():
     historyView = HistoryView()
     liveView = LiveView()
-    model = SliderModel(0, 0, 40) # minimum, value, maximum
+    model = SliderModel(0, 0, 40)  # minimum, value, maximum
     model.observers_add(historyView, liveView)  # liveView produces output
     for value in (7, 23, 37):
         model.value = value                     # liveView produces output
     for value, timestamp in historyView.data:
+        print(value, timestamp)
         print("{:3} {}".format(value, datetime.datetime.fromtimestamp(
                 timestamp)), file=sys.stderr)
 
@@ -32,20 +33,18 @@ class Observed:
     def __init__(self):
         self.__observers = set()
 
-
-    def observers_add(self, observer, *observers):
-        for observer in itertools.chain((observer,), observers):
+    def observers_add(self, observer, *observers):  # more than one observer input  (book P98☆)
+        for observer in itertools.chain((observer,), observers):  # loop in more than one observers
+            # this for == for observer in (observer, ) + observers
             self.__observers.add(observer)
-            observer.update(self)
-
+            observer.update(self)  # when added, update it right now
 
     def observer_discard(self, observer):
-        self.__observers.discard(observer)
-
+        self.__observers.discard(observer)  # discard: remove it from set()
 
     def observers_notify(self):
         for observer in self.__observers:
-            observer.update(self)
+            observer.update(self)  # update() is to coded in observers for they are different
 
 
 class SliderModel(Observed):
@@ -58,41 +57,35 @@ class SliderModel(Observed):
         self.value = value
         self.maximum = maximum
 
-
     @property
     def value(self):
         return self.__value
-
 
     @value.setter
     def value(self, value):
         if self.__value != value:
             self.__value = value
-            self.observers_notify()
-
+            self.observers_notify()  # when setting this value, update observer's tim stamp
 
     @property
     def minimum(self):
         return self.__minimum
 
-
     @minimum.setter
     def minimum(self, value):
         if self.__minimum != value:
             self.__minimum = value
-            self.observers_notify()
-
+            self.observers_notify()  # when setting this value, update observer's tim stamp
 
     @property
     def maximum(self):
         return self.__maximum
 
-
     @maximum.setter
     def maximum(self, value):
         if self.__maximum != value:
             self.__maximum = value
-            self.observers_notify()
+            self.observers_notify()  # when setting this value, update observer's tim stamp
 
 
 class HistoryView:
@@ -100,9 +93,8 @@ class HistoryView:
     def __init__(self):
         self.data = []
 
-
     def update(self, model):
-        self.data.append((model.value, time.time()))
+        self.data.append((model.value, time.time()))  # the time stamp of which this line runs
 
 
 class LiveView:
@@ -110,15 +102,14 @@ class LiveView:
     def __init__(self, length=40):
         self.length = length
 
-
     def update(self, model):
         tippingPoint = round(model.value * self.length /
-                (model.maximum - model.minimum))
+                (model.maximum - model.minimum))  # keep tippingPoint a int not a float
         td = '<td style="background-color: {}">&nbsp;</td>'
         html = ['<table style="font-family: monospace" border="0"><tr>']
-        html.extend(td.format("darkblue") * tippingPoint)
+        html.extend(td.format("darkblue") * tippingPoint)  # extend: add another list to this one's tail
         html.extend(td.format("cyan") * (self.length - tippingPoint))
-        html.append("<td>{}</td></tr></table>".format(model.value))
+        html.append("<td>{}</td></tr></table>".format(model.value))  # the number at the end of the line filled with box
         print("".join(html))
 
 
