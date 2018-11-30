@@ -5,8 +5,8 @@ def memento(obj, deep=False):
     state = copy.deepcopy(obj.__dict__) if deep else copy.copy(obj.__dict__)
 
     def restore():
-        obj.__dict__.clear()
-        obj.__dict__.update(state)
+        obj.__dict__.clear()  # clear the dict saved: remove all properties of the obj
+        obj.__dict__.update(state)  # save state into dict: make new properties
 
     return restore
 
@@ -26,10 +26,11 @@ class Transaction(object):
 
     def commit(self):
         self.states = [memento(target, self.deep) for target in self.targets]
+        # save the function memento.store into self.states but not run this function
 
     def rollback(self):
         for a_state in self.states:
-            a_state()
+            a_state()  # run the function memento.restore()
 
 
 class Transactional(object):
@@ -45,9 +46,10 @@ class Transactional(object):
         def transaction(*args, **kwargs):
             state = memento(obj)
             try:
-                return self.method(obj, *args, **kwargs)
+                return self.method(obj, *args, **kwargs)  # obj is self here; args is optional
+                # return self.method(obj)
             except Exception as e:
-                state()
+                state()  # run the memento.restore() method to rollback
                 raise e
 
         return transaction
@@ -100,5 +102,5 @@ if __name__ == '__main__':
         import sys
         import traceback
 
-        traceback.print_exc(file=sys.stdout)
+        traceback.print_exc(file=sys.stdout)  # print the trace error info
     print(num_obj)
