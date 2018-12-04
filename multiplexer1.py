@@ -56,8 +56,8 @@ def generate_random_events(count):  # random class generator
 
 class Counter:
     # __init__(self, str)   __call__(self, instance of Event())
-    def __init__(self, *names):
-        self.anonymous = not bool(names)
+    def __init__(self, *names):  # *name is a set() of names
+        self.anonymous = not bool(names)  # a good way to deal with anonymous
         if self.anonymous:
             self.count = 0  # totalCounter.count = 0
         else:

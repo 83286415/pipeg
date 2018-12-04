@@ -32,7 +32,7 @@ def main():
             .format(carCounter.cars, commercialCounter.vans,
                     commercialCounter.trucks, totalCounter.count))
 
-    multiplexer.state = Multiplexer.DORMANT
+    multiplexer.state = Multiplexer.DORMANT  # Multiplexer.state's setter works
     for event in generate_random_events(100):
         multiplexer.send(event)
     print("After 100 dormant events: cars={} vans={} trucks={} total={}"
@@ -65,7 +65,6 @@ class Counter:
                     raise ValueError("names must be valid identifiers")
                 setattr(self, name, 0)
 
-
     def __call__(self, event):
         if self.anonymous:
             self.count += event.count
@@ -89,14 +88,12 @@ class Multiplexer:
 
     def __init__(self):
         self.callbacksForEvent = collections.defaultdict(list)
-        self.state = Multiplexer.ACTIVE
-
+        self.state = Multiplexer.ACTIVE  # the init state is ACTIVE, call state setter to make connect etc methods
 
     @property
     def state(self):
         return (Multiplexer.ACTIVE if self.send == self.__active_send
                 else Multiplexer.DORMANT)
-
 
     @state.setter
     def state(self, state):
@@ -105,21 +102,18 @@ class Multiplexer:
             self.disconnect = self.__active_disconnect
             self.send = self.__active_send
         else:
-            self.connect = lambda *args: None
+            self.connect = lambda *args: None  # parameters set input, return None
             self.disconnect = lambda *args: None
             self.send = lambda *args: None
 
-
-    def __active_connect(self, eventName, callback):
+    def __active_connect(self, eventName, callback):  # faster than multiplexer1.py for not checking instance's state
         self.callbacksForEvent[eventName].append(callback)
-
 
     def __active_disconnect(self, eventName, callback=None):
         if callback is None:
             del self.callbacksForEvent[eventName]
         else:
             self.callbacksForEvent[eventName].remove(callback)
-
 
     def __active_send(self, event):
         for callback in self.callbacksForEvent.get(event.name, ()):

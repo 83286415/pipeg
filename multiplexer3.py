@@ -22,14 +22,14 @@ def main():
     commercialCounter = Counter("trucks", "vans")
 
     multiplexer = Multiplexer()
-    pipeline = multiplexer.pipeline()
+    pipeline = multiplexer.pipeline()  # need to make a pipeline instance before sending events
     for eventName, callback in (("cars", carCounter),
             ("vans", commercialCounter), ("trucks", commercialCounter)):
         multiplexer.connect(eventName, callback)
         multiplexer.connect(eventName, totalCounter)
 
     for event in generate_random_events(100):
-        pipeline.send(event)
+        pipeline.send(event)  # used in a loop
     print("After 100 active events:  cars={} vans={} trucks={} total={}"
             .format(carCounter.cars, commercialCounter.vans,
                     commercialCounter.trucks, totalCounter.count))
@@ -67,7 +67,6 @@ class Counter:
                     raise ValueError("names must be valid identifiers")
                 setattr(self, name, 0)
 
-
     def __call__(self, event):
         if self.anonymous:
             self.count += event.count
@@ -93,20 +92,17 @@ class Multiplexer:
         self.callbacksForEvent = collections.defaultdict(list)
         self.state = Multiplexer.ACTIVE
 
-
     @coroutine
     def pipeline(self):
         while True:
             event = (yield)
-            if self.state == Multiplexer.ACTIVE:
+            if self.state == Multiplexer.ACTIVE:  # if in DORMANT state, do nothing.
                 for callback in self.callbacksForEvent.get(event.name, ()):
                     callback(event)
-
 
     def connect(self, eventName, callback):
         if self.state == Multiplexer.ACTIVE:
             self.callbacksForEvent[eventName].append(callback)
-
 
     def disconnect(self, eventName, callback=None):
         if self.state == Multiplexer.ACTIVE:
