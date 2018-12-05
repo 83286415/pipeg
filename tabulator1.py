@@ -10,7 +10,7 @@
 # General Public License for more details.
 
 import sys
-if sys.version_info[:2] < (3, 2):
+if sys.version_info[:2] < (3, 2):  # for python2.x
     from xml.sax.saxutils import escape
 else:
     from html import escape
@@ -32,9 +32,8 @@ def main():
 
 class Layout:
 
-    def __init__(self, tabulator):
+    def __init__(self, tabulator):  # tabulator: table maker
         self.tabulator = tabulator
-
 
     def tabulate(self, rows, items):
         return self.tabulator.tabulate(rows, items)
@@ -43,7 +42,7 @@ class Layout:
 class Tabulator:
 
     def tabulate(self, rows, items):
-        raise NotImplementedError()
+        raise NotImplementedError()  # better than pass
 
 
 class HtmlTabulator(Tabulator):
@@ -61,7 +60,7 @@ class HtmlTabulator(Tabulator):
             column += 1
             if column == columns:
                 table.append("</tr>\n")
-            column %= columns
+            column %= columns  # column = column % columns, %: remainder
         if table[-1][-1] != "\n":
             table.append("</tr>\n")
         table.append("</table>\n")

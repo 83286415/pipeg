@@ -24,16 +24,16 @@ WINNERS = ("Nikolai Andrianov", "Matt Biondi", "Bjørn Dæhlie",
 def main():
     htmlLayout = Layout(html_tabulator)
     for rows in range(2, 6):
-        print(htmlLayout.tabulate(rows, WINNERS))
+        print(htmlLayout.tabulate(rows, WINNERS))  # self.tabulate is callable def as below defined
     textLayout = Layout(text_tabulator)
     for rows in range(2, 6):
         print(textLayout.tabulate(rows, WINNERS))
 
 
-class Layout:
+class Layout:   # simpler than tabulator1.py
 
     def __init__(self, tabulator):
-        self.tabulate = tabulator
+        self.tabulate = tabulator  # tabulator is callable def as below
 
 
 def html_tabulator(rows, items):

@@ -35,7 +35,6 @@ class Layout:
     def __init__(self, tabulator):
         self.tabulator = tabulator
 
-
     def tabulate(self, rows, items):
         return self.tabulator.tabulate(rows, items)
 
