@@ -40,13 +40,12 @@ def count_words(filename):
 
 
 class AbstractWordCounter(
-        metaclass=abc.ABCMeta):
+        metaclass=abc.ABCMeta):  # sub-class is no different
 
     @staticmethod
     @abc.abstractmethod
     def can_count(filename):
         pass
-
 
     @staticmethod
     @abc.abstractmethod
