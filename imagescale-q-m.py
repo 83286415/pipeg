@@ -19,13 +19,13 @@ import Image
 import Qtrac
 
 
-Result = collections.namedtuple("Result", "copied scaled name")
+Result = collections.namedtuple("Result", "copied scaled name")  # copied:0or1 scaled:0or1
 Summary = collections.namedtuple("Summary", "todo copied scaled canceled")
 
 
 def main():
     size, smooth, source, target, concurrency = handle_commandline()
-    Qtrac.report("starting...")
+    Qtrac.report("starting...")  # just output the first 70th's log words
     summary = scale(size, smooth, source, target, concurrency)
     summarize(summary, concurrency)
 
@@ -39,19 +39,19 @@ def handle_commandline():
     parser.add_argument("-s", "--size", default=400, type=int,
             help="make a scaled image that fits the given dimension "
                 "[default: %(default)d]")
-    parser.add_argument("-S", "--smooth", action="store_true",
+    parser.add_argument("-S", "--smooth", action="store_true",   # "true" value is stored for this parameter
             help="use smooth scaling (slow but good for text)")
     parser.add_argument("source",
             help="the directory containing the original .xpm images")
     parser.add_argument("target",
             help="the directory for the scaled .xpm images")
     args = parser.parse_args()
-    source = os.path.abspath(args.source)
+    source = os.path.abspath(args.source)  # Return the absolute path of source xpm images
     target = os.path.abspath(args.target)
     if source == target:
         args.error("source and target must be different")
     if not os.path.exists(args.target):
-        os.makedirs(target)
+        os.makedirs(target)  # makedirs: make dirS if they don't exist
     return args.size, args.smooth, source, target, args.concurrency
 
 

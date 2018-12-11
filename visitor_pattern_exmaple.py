@@ -1,3 +1,5 @@
+# http://www.cnblogs.com/liuqingzheng/articles/10039702.html
+
 class Medicine:
     name=""
     price=0.0
