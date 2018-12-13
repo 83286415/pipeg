@@ -26,7 +26,7 @@ Summary = collections.namedtuple("Summary", "todo copied scaled canceled")
 def main():
     size, smooth, source, target, concurrency = handle_commandline()
     Qtrac.report("starting...")  # just output the first 70th's log words
-    summary = scale(size, smooth, source, target, concurrency)
+    summary = scale(size, smooth, source, target, concurrency)  # return Summary
     summarize(summary, concurrency)
 
 
@@ -57,69 +57,71 @@ def handle_commandline():
 
 def scale(size, smooth, source, target, concurrency):
     canceled = False
-    jobs = multiprocessing.JoinableQueue()
-    results = multiprocessing.Queue()
-    create_processes(size, smooth, jobs, results, concurrency)
-    todo = add_jobs(source, target, jobs)
-    try:
-        jobs.join()
-    except KeyboardInterrupt: # May not work on Windows
+    jobs = multiprocessing.JoinableQueue()  # make jobs queue: like Queue() but join() and task_done() added
+    results = multiprocessing.Queue()  # make results queue: filled in worker()
+    create_processes(size, smooth, jobs, results, concurrency)  # Process in for -> daemon -> start()
+    todo = add_jobs(source, target, jobs)  # fill jobs queue with source and target and return source images' names list
+    try:        # queue.put() -> queue.task_done() in for -> queue.join()
+        jobs.join()  # block main process until jobs queue is empty
+    except KeyboardInterrupt:  # May not work on Windows
         Qtrac.report("canceling...")
         canceled = True
     copied = scaled = 0
-    while not results.empty(): # Safe because all jobs have finished
-        result = results.get_nowait()
+    while not results.empty():  # queue results is filled in each worker() process
+        result = results.get_nowait()  # Remove and return an item from the queue without blocking
         copied += result.copied
         scaled += result.scaled
-    return Summary(todo, copied, scaled, canceled)
+    return Summary(todo, copied, scaled, canceled)  # copied: the total number of copied images
 
 
 def create_processes(size, smooth, jobs, results, concurrency):
     for _ in range(concurrency):
         process = multiprocessing.Process(target=worker, args=(size,
                 smooth, jobs, results))
-        process.daemon = True
-        process.start()
+        process.daemon = True  # All multiprocess are done when main process is done
+        process.start()  # prepare multiprocess and call run()
+        # here the process is blocked, not running, because worker's jobs queue is empty.
+        # It needs to add_jobs(): jobs.put() to run() this process
 
 
 def worker(size, smooth, jobs, results):
-    while True:
+    while True:  # infinite loop is to finished when main process ends. (Daemon = True)
         try:
-            sourceImage, targetImage = jobs.get()
+            sourceImage, targetImage = jobs.get()  # get images from queue. Blocked if no images to get.
             try:
-                result = scale_one(size, smooth, sourceImage, targetImage)
+                result = scale_one(size, smooth, sourceImage, targetImage)  # return Result
                 Qtrac.report("{} {}".format("copied" if result.copied else
                         "scaled", os.path.basename(result.name)))
-                results.put(result)
+                results.put(result)  # put the result(Result) into the results queue
             except Image.Error as err:
-                Qtrac.report(str(err), True)
+                Qtrac.report(str(err), True)  # True: it is an error
         finally:
-            jobs.task_done()
+            jobs.task_done()  # this job is done. One task is done.
 
 
 def add_jobs(source, target, jobs):
-    for todo, name in enumerate(os.listdir(source), start=1):
-        sourceImage = os.path.join(source, name)
-        targetImage = os.path.join(target, name)
-        jobs.put((sourceImage, targetImage))
-    return todo
+    for todo, name in enumerate(os.listdir(source), start=1):  # listdir: make a list of all file names in source path
+        sourceImage = os.path.join(source, name)    # c:/source/images/1
+        targetImage = os.path.join(target, name)    # c:/target/images/1
+        jobs.put((sourceImage, targetImage))  # put the job into the jobs queue
+    return todo  # the list of all file names in source path
 
 
 def scale_one(size, smooth, sourceImage, targetImage):
-    oldImage = Image.from_file(sourceImage)
-    if oldImage.width <= size and oldImage.height <= size:
-        oldImage.save(targetImage)
-        return Result(1, 0, targetImage)
+    oldImage = Image.from_file(sourceImage)  # load source image
+    if oldImage.width <= size and oldImage.height <= size:  # size: specified width and height, default values: 400, 400
+        oldImage.save(targetImage)  # save it as target filename
+        return Result(1, 0, targetImage)  # 1: copied  0: scaled
     else:
         if smooth:
-            scale = min(size / oldImage.width, size / oldImage.height)
+            scale = min(size / oldImage.width, size / oldImage.height)  # 0 < scale < 1
             newImage = oldImage.scale(scale)
         else:
             stride = int(math.ceil(max(oldImage.width / size,
-                                       oldImage.height / size)))
-            newImage = oldImage.subsample(stride)
+                                       oldImage.height / size)))  # ceil refer to hands-on note
+            newImage = oldImage.subsample(stride)  # make the new image size into 1/stride
         newImage.save(targetImage)
-        return Result(0, 1, targetImage)
+        return Result(0, 1, targetImage)  # 0: copied   1: scaled
 
 
 def summarize(summary, concurrency):
@@ -130,8 +132,8 @@ def summarize(summary, concurrency):
     message += "using {} processes".format(concurrency)
     if summary.canceled:
         message += " [canceled]"
-    Qtrac.report(message)
-    print()
+    Qtrac.report(message)  # flush out logs from ram
+    print()  # just a blank line
 
 
 if __name__ == "__main__":
