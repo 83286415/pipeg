@@ -60,31 +60,32 @@ def handle_commandline():
 
 
 def scale(size, smooth, source, target, concurrency):
-    futures = set()
-    with concurrent.futures.ProcessPoolExecutor(
-            max_workers=concurrency) as executor:
-        for sourceImage, targetImage in get_jobs(source, target):
+    futures = set()  # data structure set() like tuple, disordered, non-slicing
+    with concurrent.futures.ProcessPoolExecutor(  # process pool executor used for CPU intensive computing concurrency
+            max_workers=concurrency) as executor:  # make processes!
+        for sourceImage, targetImage in get_jobs(source, target):  # get_jobs returns a generator of paths of images
             future = executor.submit(scale_one, size, smooth, sourceImage,
-                    targetImage)
-            futures.add(future)
-        summary = wait_for(futures)
-        if summary.canceled:
-            executor.shutdown()
+                    targetImage)  # submit(fn, *args, **kwargs) returns a future instance: future.running(), future.done
+            futures.add(future)  # add future instance into futures set(): run the process if future instance in pool
+        summary = wait_for(futures)  # future's wait() returns a tuple(set(completed), set(uncompleted)). Not wait_for
+        if summary.canceled:  # if there is no this "if" here, executor will be shutdown as well for the "with" above.
+            executor.shutdown()  # shutdown all sub processes
         return summary
 # if we caught the KeyboardInterrupt in this function we'd lose the
 # accumulated todo, copied, scaled counts.
 
 
 def get_jobs(source, target):
-    for name in os.listdir(source):
-        yield os.path.join(source, name), os.path.join(target, name)
+    for name in os.listdir(source):  # listdir: make a list of all file names in source path
+        yield os.path.join(source, name), os.path.join(target, name)  # such as c:/source/images/1
 
 
 def wait_for(futures):
     canceled = False
     copied = scaled = 0
     try:
-        for future in concurrent.futures.as_completed(futures):
+        for future in concurrent.futures.as_completed(futures):  # block main process, wait for all sub processes done
+            # as completed(futures, timeout=) returns a iterator: wait for each process done in timeout (block)
             err = future.exception()
             if err is None:
                 result = future.result()
@@ -92,16 +93,16 @@ def wait_for(futures):
                 scaled += result.scaled
                 Qtrac.report("{} {}".format("copied" if result.copied else
                         "scaled", os.path.basename(result.name)))
-            elif isinstance(err, Image.Error):
+            elif isinstance(err, Image.Error):  # image file error
                 Qtrac.report(str(err), True)
             else:
                 raise err # Unanticipated
-    except KeyboardInterrupt:
+    except KeyboardInterrupt:  # receive ctl+c to abort processing during running this py
         Qtrac.report("canceling...")
         canceled = True
         for future in futures:
-            future.cancel()
-    return Summary(len(futures), copied, scaled, canceled)
+            future.cancel()  # cancel all of the future instances: sub processes will not run these canceled instances
+    return Summary(len(futures), copied, scaled, canceled)  # canceled = True
 
 
 def scale_one(size, smooth, sourceImage, targetImage):
