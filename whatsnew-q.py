@@ -23,20 +23,21 @@ import Qtrac
 def main():
     limit, concurrency = handle_commandline()
     Qtrac.report("starting...")
-    filename = os.path.join(os.path.dirname(__file__), "whatsnew.dat")
+    filename = os.path.join(os.path.dirname(__file__), "whatsnew.dat")  # os.path.dirname(__file__) returns py file path
+    # this dat file stores those news's url and title with Format: Title\nURL UTF-8
     jobs = queue.Queue()
     results = queue.Queue()
     create_threads(limit, jobs, results, concurrency)
-    todo = add_jobs(filename, jobs)
+    todo = add_jobs(filename, jobs)  # _todo is the title count of url
     process(todo, jobs, results, concurrency)
 
 
 def handle_commandline():
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--limit", type=int, default=0,
-            help="the maximum items per feed [default: unlimited]")
+            help="the maximum items per feed [default: unlimited]")  # max pieces of news per url
     parser.add_argument("-c", "--concurrency", type=int,
-            default=multiprocessing.cpu_count() * 4,
+            default=multiprocessing.cpu_count() * 4,  # maybe *2 is the best config for threading
             help="specify the concurrency (for debugging and "
                 "timing) [default: %(default)d]")
     args = parser.parse_args()
@@ -54,49 +55,50 @@ def create_threads(limit, jobs, results, concurrency):
 def worker(limit, jobs, results):
     while True:
         try:
-            feed = jobs.get()
-            ok, result = Feed.read(feed, limit)
+            feed = jobs.get()  # block until Feed is loaded into this queue. see def add_jobs()
+            ok, result = Feed.read(feed, limit)  # open url in feed.url and return news title + body; ok: url open ok
             if not ok:
-                Qtrac.report(result, True)
+                Qtrac.report(result, True)  # result here is url title + error info
             elif result is not None:
-                Qtrac.report("read {}".format(result[0][4:-6]))
+                Qtrac.report("read {}".format(result[0][4:-6]))  # ignore the <ul> tag
                 results.put(result)
         finally:
-            jobs.task_done()
+            jobs.task_done()  # each jobs.get() ends with jobs.task_done()
 
 
 def add_jobs(filename, jobs):
-    for todo, feed in enumerate(Feed.iter(filename), start=1):
-        jobs.put(feed)
-    return todo
+    for todo, feed in enumerate(Feed.iter(filename), start=1):  # _todo is 1, 2, 3, 4...  feed is Feed(title ,url) gen
+        jobs.put(feed)  # load Feed's generator into jobs' queue
+    return todo  # return the title count of mission
 
 
 def process(todo, jobs, results, concurrency):
     canceled = False
     try:
-        jobs.join() # Wait for all the work to be done
+        jobs.join()  # Wait for all the work to be done
     except KeyboardInterrupt: # May not work on Windows
         Qtrac.report("canceling...")
         canceled = True
     if canceled:
-        done = results.qsize()
+        done = results.qsize()  # return the queue's size: the count of the done jobs
+        filename = None  # raise a OS Error if filename is None when web browser open it
     else:
         done, filename = output(results)
     Qtrac.report("read {}/{} feeds using {} threads{}".format(done, todo,
             concurrency, " [canceled]" if canceled else ""))
-    print()
+    print()  # just a blank line
     if not canceled:
         webbrowser.open(filename)
 
 
-def output(results):
+def output(results):  # write a result html to show
     done = 0
     filename = os.path.join(tempfile.gettempdir(), "whatsnew.html") 
     with open(filename, "wt", encoding="utf-8") as file:
         file.write("<!doctype html>\n")
         file.write("<html><head><title>What's New</title></head>\n")
         file.write("<body><h1>What's New</h1>\n")
-        while not results.empty(): # Safe because all jobs have finished
+        while not results.empty():  # Safe because all jobs have finished
             result = results.get_nowait()
             done += 1
             for item in result:

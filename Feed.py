@@ -38,17 +38,17 @@ except ImportError:
 Feed = collections.namedtuple("Feed", "title url")
 
 
-def iter(filename):
+def iter(filename):  # whatsnew.dat: Format: Title\nURL UTF-8
     name = None
     with open(filename, "rt", encoding="utf-8") as file:
         for line in file:
             line = line.rstrip()
-            if not line or line.startswith("#"):
+            if not line or line.startswith("#"):  # ignore the first line and blank line in dat file
                 continue
-            if name is None:
+            if name is None:  # get the title
                 name = line
             else:
-                yield Feed(name, line)
+                yield Feed(name, line)  # Feed(title, url)
                 name = None
 
 
@@ -58,7 +58,7 @@ def read(feed, limit, timeout=10):
             data = file.read()
         body = _parse(data, limit)
         if body:
-            body = ["<h2>{}</h2>\n".format(escape(feed.title))] + body
+            body = ["<h2>{}</h2>\n".format(escape(feed.title))] + body  # escape: see my note of xml.sax.saxutils
             return True, body
         return True, None
     except (ValueError, urllib.error.HTTPError, urllib.error.URLError,
