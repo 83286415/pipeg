@@ -101,7 +101,7 @@ def wait_for(futures):
         Qtrac.report("canceling...")
         canceled = True
         for future in futures:
-            future.cancel()  # cancel all of the future instances: sub processes will not run these canceled instances
+            future.cancel()  # cancel rest of the future instances: sub processes will not run these canceled instances
     return Summary(len(futures), copied, scaled, canceled)  # canceled = True
 
 

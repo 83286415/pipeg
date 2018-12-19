@@ -22,17 +22,17 @@ import webbrowser
 import Feed
 import Qtrac
 
-
+# pls refer to pipeg/imagescale-m.py and whatsnew-q.py for more detailed comments about the code below
 def main():
     limit, concurrency = handle_commandline()
     Qtrac.report("starting...")
     filename = os.path.join(os.path.dirname(__file__), "whatsnew.dat")
-    futures = set()
+    futures = set()  # instances set of futures
     with concurrent.futures.ThreadPoolExecutor(
             max_workers=concurrency) as executor:
-        for feed in Feed.iter(filename):
-            future = executor.submit(Feed.read, feed, limit)
-            futures.add(future)
+        for feed in Feed.iter(filename):  # a generator of Feed(title, url)
+            future = executor.submit(Feed.read, feed, limit)  # Feed.read is fn; feed and limit are fn's parameters
+            futures.add(future)  # add future instance into futures set
         done, filename, canceled = process(futures)
         if canceled:
             executor.shutdown()
@@ -83,7 +83,7 @@ def wait_for(futures):
     canceled = False
     results = []
     try:
-        for future in concurrent.futures.as_completed(futures):
+        for future in concurrent.futures.as_completed(futures):  # block main process until future jobs done or canceled
             err = future.exception()
             if err is None:
                 ok, result = future.result()
@@ -98,7 +98,7 @@ def wait_for(futures):
         Qtrac.report("canceling...")
         canceled = True
         for future in futures:
-            future.cancel()
+            future.cancel()  # cancel rest of the futures.The other running & completed future instances aren't canceled
     return canceled, results
 
 
